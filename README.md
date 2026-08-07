@@ -1,8 +1,10 @@
 # cordova-plugin-memory-warning
 
-A maintained Cordova Android plugin for checking device-memory headroom immediately
-before an app launches an external camera. This fork does not modify generated
-`MainActivity.java` and does not collect process or WebView diagnostics.
+A maintained Cordova Android plugin that answers one question immediately before
+the app opens an external camera: is there enough memory headroom?
+
+The plugin does not modify generated `MainActivity.java` and does not return
+diagnostic memory measurements.
 
 ## Installation
 
@@ -19,40 +21,25 @@ The default camera reserve is 128 MB. Override it in the Cordova application's r
 <preference name="CameraMemoryReserveMB" value="128" />
 ```
 
-For a forced-unsafe test, temporarily configure a reserve larger than the device's
-expected headroom, rebuild, verify that the camera is blocked, and restore 128 MB.
-
 ## API
 
 ```javascript
-cordova.plugins.memoryGuard.getCameraMemoryStatus(function(status) {
-    console.log("[MEMORY-GUARD] " + JSON.stringify(status));
+cordova.plugins.memoryGuard.isSafeToOpenCamera(function(safeToOpenCamera) {
+    if (safeToOpenCamera) {
+        navigator.camera.getPicture(successCallback, errorCallback, options);
+    }
 }, function(error) {
-    console.warn("[MEMORY-GUARD] Check failed: " + JSON.stringify(error));
+    // Preserve existing camera behavior if the safety check fails.
+    navigator.camera.getPicture(successCallback, errorCallback, options);
 });
 ```
 
-The native result contains only:
-
-```json
-{
-  "lowMemory": false,
-  "availableMemMB": 239,
-  "thresholdMB": 205,
-  "headroomMB": 34,
-  "cameraReserveMB": 128,
-  "safeToOpenCamera": false
-}
-```
-
-The safety calculation uses Android `ActivityManager.MemoryInfo`:
+The success callback receives only a boolean. Android calculates it from
+`ActivityManager.MemoryInfo` on Cordova's thread pool:
 
 ```java
 long headroomBytes = memoryInfo.availMem - memoryInfo.threshold;
-boolean safeToOpenCamera =
-        !memoryInfo.lowMemory && headroomBytes >= cameraReserveBytes;
+return !memoryInfo.lowMemory && headroomBytes >= cameraReserveBytes;
 ```
 
-The check runs on Cordova's thread pool. It is a point-in-time guard only: memory
-conditions can change afterward, and Android does not permit the calling app to
-terminate unrelated applications.
+The result is a point-in-time safety check; memory conditions can change afterward.
