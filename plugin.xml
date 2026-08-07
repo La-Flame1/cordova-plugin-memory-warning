@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin id="cordova-plugin-memory-warning"
-        version="2.0.0"
+        version="2.1.0"
         xmlns="http://apache.org/cordova/ns/plugins/1.0">
 
     <name>BlueHook Memory Guard</name>
-    <description>Checks Android memory headroom before launching an external camera.</description>
+    <description>Checks whether Android has enough memory headroom to open the external camera.</description>
     <license>MIT</license>
     <keywords>cordova,memory,camera,guard</keywords>
     <repo>https://github.com/La-Flame1/cordova-plugin-memory-warning.git</repo>
