@@ -1,62 +1,71 @@
 package com.counterplay.memory;
 
+import android.app.ActivityManager;
+import android.content.Context;
+
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
-import org.apache.cordova.PluginResult;
-import org.apache.cordova.LOG;
-
 import org.json.JSONArray;
-import org.json.JSONObject;
 import org.json.JSONException;
-
-import android.app.Activity;
-import android.app.ActivityManager;
-import android.app.ActivityManager.MemoryInfo;
-import android.os.Build;
-import android.content.Context;
-import android.content.Intent;
+import org.json.JSONObject;
 
 public class CordovaPluginMemoryWarning extends CordovaPlugin {
-
-    private static final String TAG = "CordovaPluginMemoryWarning";
-    private ActivityManager activityManager;
+    private static final String ACTION_GET_CAMERA_MEMORY_STATUS = "getCameraMemoryStatus";
+    private static final int DEFAULT_CAMERA_RESERVE_MB = 128;
+    private static final long BYTES_PER_MB = 1024L * 1024L;
 
     @Override
-    protected void pluginInitialize() {
-        // create activity manager to request memory state from system
-        Activity activity = cordova.getActivity();
-        activityManager = (ActivityManager) activity.getSystemService(Activity.ACTIVITY_SERVICE);
-    }
-
-    /**
-     * Executes the request and returns PluginResult.
-     * @param action 		The action to execute.
-     * @param args 			JSONArry of arguments for the plugin.
-     * @param callbackContext		The callback context used when calling back into JavaScript.
-     * @return 				A PluginResult object with a status and message.
-     */
-    public boolean execute(final String action, final JSONArray args, final CallbackContext callbackContext) throws JSONException {
-        if (action.equals("isMemoryUsageUnsafe")) {
-            cordova.getThreadPool().execute(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        MemoryInfo memoryInfo = new MemoryInfo();
-                        activityManager.getMemoryInfo(memoryInfo);
-
-                        if (memoryInfo.lowMemory) {
-                            LOG.d(TAG, "Low memory");
-                        }
-
-                        callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, memoryInfo.lowMemory));
-                    } catch (Exception e) {
-                        LOG.e(TAG, "Error occured while checking memory usage", e);
-                        callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.JSON_EXCEPTION, "Could not check memory usage"));
-                    }
-                }
-            });
+    public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) {
+        if (!ACTION_GET_CAMERA_MEMORY_STATUS.equals(action)) {
+            return false;
         }
 
+        cordova.getThreadPool().execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    callbackContext.success(getCameraMemoryStatus());
+                } catch (Exception exception) {
+                    callbackContext.error("Unable to read device memory: " + exception.getMessage());
+                }
+            }
+        });
+
         return true;
+    }
+
+    private JSONObject getCameraMemoryStatus() throws JSONException {
+        Context context = cordova.getContext();
+        ActivityManager activityManager =
+                (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+
+        if (activityManager == null) {
+            throw new IllegalStateException("ActivityManager is unavailable");
+        }
+
+        ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
+        activityManager.getMemoryInfo(memoryInfo);
+
+        int cameraReserveMB = preferences.getInteger(
+                "CameraMemoryReserveMB",
+                DEFAULT_CAMERA_RESERVE_MB
+        );
+        if (cameraReserveMB < 0) {
+            cameraReserveMB = DEFAULT_CAMERA_RESERVE_MB;
+        }
+
+        long cameraReserveBytes = cameraReserveMB * BYTES_PER_MB;
+        long headroomBytes = memoryInfo.availMem - memoryInfo.threshold;
+        boolean safeToOpenCamera =
+                !memoryInfo.lowMemory && headroomBytes >= cameraReserveBytes;
+
+        JSONObject status = new JSONObject();
+        status.put("lowMemory", memoryInfo.lowMemory);
+        status.put("availableMemMB", memoryInfo.availMem / BYTES_PER_MB);
+        status.put("thresholdMB", memoryInfo.threshold / BYTES_PER_MB);
+        status.put("headroomMB", headroomBytes / BYTES_PER_MB);
+        status.put("cameraReserveMB", cameraReserveMB);
+        status.put("safeToOpenCamera", safeToOpenCamera);
+        return status;
     }
 }
