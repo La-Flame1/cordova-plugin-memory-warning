@@ -1,27 +1,25 @@
 {
   "name": "cordova-plugin-memory-warning",
-  "version": "1.0.0",
-  "description": "Cordova Memory Warning Plugin",
-  "types": "./types/index.d.ts",
+  "version": "2.0.0",
+  "description": "Cordova Android camera memory headroom guard",
   "cordova": {
     "id": "cordova-plugin-memory-warning",
     "platforms": [
-      "android",
-      "ios"
+      "android"
     ]
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/88dots/cordova-plugin-memory-warning"
+    "url": "git+https://github.com/La-Flame1/cordova-plugin-memory-warning.git"
   },
   "keywords": [
     "cordova",
     "memory",
-    "warning",
+    "camera",
+    "guard",
     "ecosystem:cordova",
-    "cordova-android",
-    "cordova-ios"
+    "cordova-android"
   ],
-  "author": "Counterplay Games",
+  "author": "La-Flame1",
   "license": "MIT"
 }
