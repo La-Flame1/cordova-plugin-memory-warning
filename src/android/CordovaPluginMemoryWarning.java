@@ -5,6 +5,7 @@ import android.content.Context;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 
 public class CordovaPluginMemoryWarning extends CordovaPlugin {
@@ -22,7 +23,10 @@ public class CordovaPluginMemoryWarning extends CordovaPlugin {
             @Override
             public void run() {
                 try {
-                    callbackContext.success(isSafeToOpenCamera() ? 1 : 0);
+                    callbackContext.sendPluginResult(new PluginResult(
+                            PluginResult.Status.OK,
+                            isSafeToOpenCamera()
+                    ));
                 } catch (Exception exception) {
                     callbackContext.error("Unable to check camera memory safety: " + exception.getMessage());
                 }
