@@ -1,5 +1,5 @@
-var exec = require('cordova/exec');
+var exec = require("cordova/exec");
 
-exports.isMemoryUsageUnsafe = function(success, fail) {
-    exec(success, fail, "CordovaPluginMemoryWarning", "isMemoryUsageUnsafe");
+exports.getCameraMemoryStatus = function(successCallback, errorCallback) {
+    exec(successCallback, errorCallback, "MemoryGuard", "getCameraMemoryStatus", []);
 };
