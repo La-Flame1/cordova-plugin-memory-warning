@@ -1,11 +1,12 @@
 {
   "name": "cordova-plugin-memory-warning",
-  "version": "2.1.0",
-  "description": "Cordova Android camera memory safety check",
+  "version": "3.0.0",
+  "description": "Modern Cordova-compatible memory warning plugin for camera gating",
   "cordova": {
     "id": "cordova-plugin-memory-warning",
     "platforms": [
-      "android"
+      "android",
+      "ios"
     ]
   },
   "repository": {
@@ -15,10 +16,12 @@
   "keywords": [
     "cordova",
     "memory",
+    "warning",
     "camera",
     "guard",
     "ecosystem:cordova",
-    "cordova-android"
+    "cordova-android",
+    "cordova-ios"
   ],
   "author": "La-Flame1",
   "license": "MIT"
