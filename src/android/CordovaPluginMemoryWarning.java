@@ -16,6 +16,9 @@ public class CordovaPluginMemoryWarning extends CordovaPlugin {
 
     private static final String TAG = "CordovaPluginMemoryWarning";
     private static final String ACTION_IS_MEMORY_USAGE_UNSAFE = "isMemoryUsageUnsafe";
+    private static final String CAMERA_MEMORY_RESERVE_PREFERENCE = "CameraMemoryReserveMB";
+    private static final int DEFAULT_CAMERA_MEMORY_RESERVE_MB = 640;
+    private static final long BYTES_PER_MB = 1024L * 1024L;
     private ActivityManager activityManager;
 
     @Override
@@ -45,13 +48,32 @@ public class CordovaPluginMemoryWarning extends CordovaPlugin {
                     MemoryInfo memoryInfo = new MemoryInfo();
                     activityManager.getMemoryInfo(memoryInfo);
 
-                    if (memoryInfo.lowMemory) {
-                        LOG.d(TAG, "Android reports a low-memory condition");
+                    int cameraReserveMB = preferences.getInteger(
+                            CAMERA_MEMORY_RESERVE_PREFERENCE,
+                            DEFAULT_CAMERA_MEMORY_RESERVE_MB
+                    );
+                    if (cameraReserveMB < 0) {
+                        cameraReserveMB = DEFAULT_CAMERA_MEMORY_RESERVE_MB;
                     }
+
+                    long headroomBytes = memoryInfo.availMem - memoryInfo.threshold;
+                    long cameraReserveBytes = cameraReserveMB * BYTES_PER_MB;
+                    boolean memoryUsageUnsafe = memoryInfo.lowMemory
+                            || headroomBytes < cameraReserveBytes;
+
+                    LOG.d(
+                            TAG,
+                            "lowMemory=" + memoryInfo.lowMemory
+                                    + ", availableMemMB=" + memoryInfo.availMem / BYTES_PER_MB
+                                    + ", thresholdMB=" + memoryInfo.threshold / BYTES_PER_MB
+                                    + ", headroomMB=" + headroomBytes / BYTES_PER_MB
+                                    + ", cameraReserveMB=" + cameraReserveMB
+                                    + ", memoryUsageUnsafe=" + memoryUsageUnsafe
+                    );
 
                     callbackContext.sendPluginResult(new PluginResult(
                             PluginResult.Status.OK,
-                            memoryInfo.lowMemory
+                            memoryUsageUnsafe
                     ));
                 } catch (Exception exception) {
                     LOG.e(TAG, "Unable to check memory usage", exception);
