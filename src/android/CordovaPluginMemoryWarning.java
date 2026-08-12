@@ -11,13 +11,15 @@ import org.json.JSONException;
 import android.app.ActivityManager;
 import android.app.ActivityManager.MemoryInfo;
 import android.content.Context;
+import android.os.Debug;
 
 public class CordovaPluginMemoryWarning extends CordovaPlugin {
 
     private static final String TAG = "CordovaPluginMemoryWarning";
     private static final String ACTION_IS_MEMORY_USAGE_UNSAFE = "isMemoryUsageUnsafe";
     private static final String CAMERA_MEMORY_RESERVE_PREFERENCE = "CameraMemoryReserveMB";
-    private static final int DEFAULT_CAMERA_MEMORY_RESERVE_MB = 1024;
+    private static final int DEFAULT_CAMERA_MEMORY_RESERVE_MB = 384;
+    private static final long BYTES_PER_KB = 1024L;
     private static final long BYTES_PER_MB = 1024L * 1024L;
     private ActivityManager activityManager;
 
@@ -56,10 +58,12 @@ public class CordovaPluginMemoryWarning extends CordovaPlugin {
                         cameraReserveMB = DEFAULT_CAMERA_MEMORY_RESERVE_MB;
                     }
 
-                    long headroomBytes = memoryInfo.availMem - memoryInfo.threshold;
+                    long appPssBytes = Debug.getPss() * BYTES_PER_KB;
                     long cameraReserveBytes = cameraReserveMB * BYTES_PER_MB;
+                    long requiredHeadroomBytes = appPssBytes + cameraReserveBytes;
+                    long headroomBytes = memoryInfo.availMem - memoryInfo.threshold;
                     boolean memoryUsageUnsafe = memoryInfo.lowMemory
-                            || headroomBytes < cameraReserveBytes;
+                            || headroomBytes < requiredHeadroomBytes;
 
                     LOG.d(
                             TAG,
@@ -67,7 +71,9 @@ public class CordovaPluginMemoryWarning extends CordovaPlugin {
                                     + ", availableMemMB=" + memoryInfo.availMem / BYTES_PER_MB
                                     + ", thresholdMB=" + memoryInfo.threshold / BYTES_PER_MB
                                     + ", headroomMB=" + headroomBytes / BYTES_PER_MB
-                                    + ", cameraReserveMB=" + cameraReserveMB
+                                    + ", appPssMB=" + appPssBytes / BYTES_PER_MB
+                                    + ", baseCameraReserveMB=" + cameraReserveMB
+                                    + ", requiredHeadroomMB=" + requiredHeadroomBytes / BYTES_PER_MB
                                     + ", memoryUsageUnsafe=" + memoryUsageUnsafe
                     );
 
