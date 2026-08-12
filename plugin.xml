@@ -21,6 +21,7 @@
                 <param name="android-package" value="com.counterplay.memory.CordovaPluginMemoryWarning" />
                 <param name="onload" value="true" />
             </feature>
+            <preference name="CameraMemoryReserveMB" value="640" />
         </config-file>
 
         <source-file src="src/android/CordovaPluginMemoryWarning.java"
