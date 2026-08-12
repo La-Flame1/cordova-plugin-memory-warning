@@ -17,7 +17,7 @@ public class CordovaPluginMemoryWarning extends CordovaPlugin {
     private static final String TAG = "CordovaPluginMemoryWarning";
     private static final String ACTION_IS_MEMORY_USAGE_UNSAFE = "isMemoryUsageUnsafe";
     private static final String CAMERA_MEMORY_RESERVE_PREFERENCE = "CameraMemoryReserveMB";
-    private static final int DEFAULT_CAMERA_MEMORY_RESERVE_MB = 640;
+    private static final int DEFAULT_CAMERA_MEMORY_RESERVE_MB = 1024;
     private static final long BYTES_PER_MB = 1024L * 1024L;
     private ActivityManager activityManager;
 
