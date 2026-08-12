@@ -7,20 +7,16 @@ import org.apache.cordova.PluginResult;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.app.ActivityManager;
 import android.app.ActivityManager.MemoryInfo;
 import android.content.Context;
-import android.os.Debug;
 
 public class CordovaPluginMemoryWarning extends CordovaPlugin {
 
     private static final String TAG = "CordovaPluginMemoryWarning";
-    private static final String ACTION_IS_MEMORY_USAGE_UNSAFE = "isMemoryUsageUnsafe";
-    private static final String CAMERA_MEMORY_RESERVE_PREFERENCE = "CameraMemoryReserveMB";
-    private static final int DEFAULT_CAMERA_MEMORY_RESERVE_MB = 384;
-    private static final int MINIMUM_REQUIRED_HEADROOM_MB = 800;
-    private static final long BYTES_PER_KB = 1024L;
+    private static final String ACTION_GET_MEMORY_INFO = "getMemoryInfo";
     private static final long BYTES_PER_MB = 1024L * 1024L;
     private ActivityManager activityManager;
 
@@ -36,7 +32,7 @@ public class CordovaPluginMemoryWarning extends CordovaPlugin {
             final JSONArray args,
             final CallbackContext callbackContext
     ) throws JSONException {
-        if (!ACTION_IS_MEMORY_USAGE_UNSAFE.equals(action)) {
+        if (!ACTION_GET_MEMORY_INFO.equals(action)) {
             return false;
         }
 
@@ -51,52 +47,28 @@ public class CordovaPluginMemoryWarning extends CordovaPlugin {
                     MemoryInfo memoryInfo = new MemoryInfo();
                     activityManager.getMemoryInfo(memoryInfo);
 
-                    int cameraReserveMB = preferences.getInteger(
-                            CAMERA_MEMORY_RESERVE_PREFERENCE,
-                            DEFAULT_CAMERA_MEMORY_RESERVE_MB
-                    );
-                    if (cameraReserveMB < 0) {
-                        cameraReserveMB = DEFAULT_CAMERA_MEMORY_RESERVE_MB;
-                    }
-
-                    long appPssBytes = Debug.getPss() * BYTES_PER_KB;
-                    long cameraReserveBytes = cameraReserveMB * BYTES_PER_MB;
-                    long dynamicRequiredHeadroomBytes = appPssBytes + cameraReserveBytes;
-                    long minimumRequiredHeadroomBytes =
-                            MINIMUM_REQUIRED_HEADROOM_MB * BYTES_PER_MB;
-                    long requiredHeadroomBytes = Math.max(
-                            dynamicRequiredHeadroomBytes,
-                            minimumRequiredHeadroomBytes
-                    );
-                    long headroomBytes = memoryInfo.availMem - memoryInfo.threshold;
-                    boolean memoryUsageUnsafe = memoryInfo.lowMemory
-                            || headroomBytes < requiredHeadroomBytes;
+                    JSONObject result = new JSONObject();
+                    result.put("availMem", memoryInfo.availMem);
+                    result.put("threshold", memoryInfo.threshold);
+                    result.put("lowMemory", memoryInfo.lowMemory);
+                    result.put("totalMem", memoryInfo.totalMem);
 
                     LOG.d(
                             TAG,
-                            "lowMemory=" + memoryInfo.lowMemory
-                                    + ", availableMemMB=" + memoryInfo.availMem / BYTES_PER_MB
+                            "availMemMB=" + memoryInfo.availMem / BYTES_PER_MB
                                     + ", thresholdMB=" + memoryInfo.threshold / BYTES_PER_MB
-                                    + ", headroomMB=" + headroomBytes / BYTES_PER_MB
-                                    + ", appPssMB=" + appPssBytes / BYTES_PER_MB
-                                    + ", baseCameraReserveMB=" + cameraReserveMB
-                                    + ", dynamicRequiredHeadroomMB="
-                                    + dynamicRequiredHeadroomBytes / BYTES_PER_MB
-                                    + ", minimumRequiredHeadroomMB="
-                                    + MINIMUM_REQUIRED_HEADROOM_MB
-                                    + ", requiredHeadroomMB="
-                                    + requiredHeadroomBytes / BYTES_PER_MB
-                                    + ", memoryUsageUnsafe=" + memoryUsageUnsafe
+                                    + ", totalMemMB=" + memoryInfo.totalMem / BYTES_PER_MB
+                                    + ", lowMemory=" + memoryInfo.lowMemory
                     );
 
                     callbackContext.sendPluginResult(new PluginResult(
                             PluginResult.Status.OK,
-                            memoryUsageUnsafe
+                            result
                     ));
                 } catch (Exception exception) {
-                    LOG.e(TAG, "Unable to check memory usage", exception);
+                    LOG.e(TAG, "Unable to get memory information", exception);
                     callbackContext.error(
-                            "Unable to check memory usage: " + exception.getMessage()
+                            "Unable to get memory information: " + exception.getMessage()
                     );
                 }
             }
