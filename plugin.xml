@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin id="cordova-plugin-memory-warning"
-        version="3.3.0"
+        version="4.0.0"
         xmlns="http://apache.org/cordova/ns/plugins/1.0"
         xmlns:android="http://schemas.android.com/apk/res/android">
 
     <name>CordovaPluginMemoryWarning</name>
-    <description>Modern Cordova-compatible memory warning plugin for camera gating.</description>
+    <description>Modern Cordova-compatible memory information plugin for camera gating.</description>
     <license>MIT</license>
     <keywords>cordova,memory,warning,camera,guard</keywords>
     <repo>https://github.com/La-Flame1/cordova-plugin-memory-warning.git</repo>
@@ -21,7 +21,6 @@
                 <param name="android-package" value="com.counterplay.memory.CordovaPluginMemoryWarning" />
                 <param name="onload" value="true" />
             </feature>
-            <preference name="CameraMemoryReserveMB" value="384" />
         </config-file>
 
         <source-file src="src/android/CordovaPluginMemoryWarning.java"
