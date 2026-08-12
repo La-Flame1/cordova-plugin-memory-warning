@@ -19,6 +19,7 @@ public class CordovaPluginMemoryWarning extends CordovaPlugin {
     private static final String ACTION_IS_MEMORY_USAGE_UNSAFE = "isMemoryUsageUnsafe";
     private static final String CAMERA_MEMORY_RESERVE_PREFERENCE = "CameraMemoryReserveMB";
     private static final int DEFAULT_CAMERA_MEMORY_RESERVE_MB = 384;
+    private static final int MINIMUM_REQUIRED_HEADROOM_MB = 900;
     private static final long BYTES_PER_KB = 1024L;
     private static final long BYTES_PER_MB = 1024L * 1024L;
     private ActivityManager activityManager;
@@ -60,7 +61,13 @@ public class CordovaPluginMemoryWarning extends CordovaPlugin {
 
                     long appPssBytes = Debug.getPss() * BYTES_PER_KB;
                     long cameraReserveBytes = cameraReserveMB * BYTES_PER_MB;
-                    long requiredHeadroomBytes = appPssBytes + cameraReserveBytes;
+                    long dynamicRequiredHeadroomBytes = appPssBytes + cameraReserveBytes;
+                    long minimumRequiredHeadroomBytes =
+                            MINIMUM_REQUIRED_HEADROOM_MB * BYTES_PER_MB;
+                    long requiredHeadroomBytes = Math.max(
+                            dynamicRequiredHeadroomBytes,
+                            minimumRequiredHeadroomBytes
+                    );
                     long headroomBytes = memoryInfo.availMem - memoryInfo.threshold;
                     boolean memoryUsageUnsafe = memoryInfo.lowMemory
                             || headroomBytes < requiredHeadroomBytes;
@@ -73,7 +80,12 @@ public class CordovaPluginMemoryWarning extends CordovaPlugin {
                                     + ", headroomMB=" + headroomBytes / BYTES_PER_MB
                                     + ", appPssMB=" + appPssBytes / BYTES_PER_MB
                                     + ", baseCameraReserveMB=" + cameraReserveMB
-                                    + ", requiredHeadroomMB=" + requiredHeadroomBytes / BYTES_PER_MB
+                                    + ", dynamicRequiredHeadroomMB="
+                                    + dynamicRequiredHeadroomBytes / BYTES_PER_MB
+                                    + ", minimumRequiredHeadroomMB="
+                                    + MINIMUM_REQUIRED_HEADROOM_MB
+                                    + ", requiredHeadroomMB="
+                                    + requiredHeadroomBytes / BYTES_PER_MB
                                     + ", memoryUsageUnsafe=" + memoryUsageUnsafe
                     );
 
