@@ -1,7 +1,7 @@
 {
   "name": "cordova-plugin-memory-warning",
-  "version": "3.3.0",
-  "description": "Modern Cordova-compatible memory warning plugin for camera gating",
+  "version": "4.0.0",
+  "description": "Modern Cordova-compatible memory information plugin for camera gating",
   "cordova": {
     "id": "cordova-plugin-memory-warning",
     "platforms": [
