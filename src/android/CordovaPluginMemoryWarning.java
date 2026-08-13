@@ -47,8 +47,7 @@ public class CordovaPluginMemoryWarning extends CordovaPlugin {
                     MemoryInfo memoryInfo = new MemoryInfo();
                     activityManager.getMemoryInfo(memoryInfo);
 
-                    // Return ActivityManager.MemoryInfo in Android's standard byte
-                    // format. Camera policy and unit conversion belong in JavaScript.
+                    // Return ActivityManager.MemoryInfo in Android's standard byte format
                     JSONObject result = new JSONObject();
                     result.put("availMem", memoryInfo.availMem);
                     result.put("threshold", memoryInfo.threshold);
