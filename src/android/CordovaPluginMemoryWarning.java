@@ -18,8 +18,6 @@ public class CordovaPluginMemoryWarning extends CordovaPlugin {
     private static final String TAG = "CordovaPluginMemoryWarning";
     private static final String ACTION_GET_MEMORY_INFO = "getMemoryInfo";
     private static final long BYTES_PER_MB = 1024L * 1024L;
-    // Android reports memory in bytes. A GiB contains 1024 * 1024 * 1024 bytes.
-    private static final double BYTES_PER_GB = 1024D * 1024D * 1024D;
     private ActivityManager activityManager;
 
     @Override
@@ -49,16 +47,13 @@ public class CordovaPluginMemoryWarning extends CordovaPlugin {
                     MemoryInfo memoryInfo = new MemoryInfo();
                     activityManager.getMemoryInfo(memoryInfo);
 
-                    // Keep the exact Android byte values for backwards compatibility.
-                    // The GB fields make the values easier for JavaScript and logs to read.
+                    // Return ActivityManager.MemoryInfo in Android's standard byte
+                    // format. Camera policy and unit conversion belong in JavaScript.
                     JSONObject result = new JSONObject();
                     result.put("availMem", memoryInfo.availMem);
                     result.put("threshold", memoryInfo.threshold);
                     result.put("lowMemory", memoryInfo.lowMemory);
                     result.put("totalMem", memoryInfo.totalMem);
-                    result.put("availMemGB", memoryInfo.availMem / BYTES_PER_GB);
-                    result.put("thresholdGB", memoryInfo.threshold / BYTES_PER_GB);
-                    result.put("totalMemGB", memoryInfo.totalMem / BYTES_PER_GB);
 
                     LOG.d(
                             TAG,
